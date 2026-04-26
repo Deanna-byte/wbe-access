@@ -44,7 +44,7 @@ export default function Home() {
         throw new Error(errorData.error || '分析问题失败');
       }
 
-      const { personas: selectedPersonas } = await analyzeRes.json();
+      const { personas: selectedPersonas } = await analyzeRes.json() as { personas: Persona[] };
       setPersonas(selectedPersonas);
 
       // 并发调用：一次请求，后端并发生成所有专家回答
