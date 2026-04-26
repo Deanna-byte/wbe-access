@@ -47,39 +47,29 @@ export default function Home() {
       const { personas: selectedPersonas } = await analyzeRes.json();
       setPersonas(selectedPersonas);
 
-      const allResponses: Response[] = [];
+      // 并发调用：一次请求，后端并发生成所有专家回答
+      try {
+        const generateRes = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: q,
+            personaIds: selectedPersonas.map(p => p.id)
+          })
+        });
 
-      for (let i = 0; i < selectedPersonas.length; i++) {
-        const persona = selectedPersonas[i];
-
-        try {
-          const generateRes = await fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              question: q,
-              personaIds: [persona.id]
-            })
-          });
-
-          if (!generateRes.ok) {
-            const errorData = await generateRes.json().catch(() => ({}));
-            throw new Error(errorData.error || `${persona.name_zh}回答失败`);
-          }
-
-          const { responses: generatedResponses } = await generateRes.json();
-
-          if (generatedResponses && generatedResponses.length > 0) {
-            allResponses.push(generatedResponses[0]);
-            setResponses([...allResponses]);
-          }
-        } catch (err) {
-          console.error(`生成${persona.name_zh}回答失败:`, err);
+        if (!generateRes.ok) {
+          const errorData = await generateRes.json().catch(() => ({}));
+          throw new Error(errorData.error || '生成回答失败');
         }
-      }
 
-      if (allResponses.length === 0) {
-        throw new Error('所有专家回答都失败了，请检查API配置');
+        const { responses: generatedResponses } = await generateRes.json();
+        setResponses(generatedResponses || []);
+      } catch (err) {
+        console.error('Error:', err);
+        setError(err instanceof Error ? err.message : '发生错误，请重试');
+      } finally {
+        setIsLoading(false);
       }
 
     } catch (err) {
@@ -129,7 +119,7 @@ export default function Home() {
                 <h2 className="font-display text-[2.3rem] text-[var(--ink)]">顾问们正在写回信</h2>
               </div>
               <p className="max-w-md text-sm leading-6 text-[var(--muted)]">
-                当前正在依次调用 {personas.map((p) => p.name_zh).join(' / ')} 的视角。
+                三位顾问正在并发撰写回答，稍等片刻。
               </p>
             </div>
             <div className="grid gap-6">
