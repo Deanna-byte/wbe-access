@@ -101,19 +101,6 @@ export function analyzeDomain(question: string): string {
     }
   }
 
-  // 如果没有任何关键词匹配，综合判断
-  if (bestScore === 0) {
-    const q = lowerQuestion;
-    // 基于常见词综合判断
-    if (/\b(工作|上班|老板|同事|升职|加薪|辞职|跳槽|面试|职场|职业)\b/.test(q)) return 'career';
-    if (/\b(创业|融资|产品|团队|管理|商业|市场)\b/.test(q)) return 'startup';
-    if (/\b(健康|运动|减肥|睡眠|饮食|疾病|身体|锻炼)\b/.test(q)) return 'health';
-    if (/\b(投资|股票|理财|基金|财富|赚钱|钱|资产)\b/.test(q)) return 'finance';
-    if (/\b(感情|恋爱|婚姻|伴侣|亲密|分手|两性|家庭)\b/.test(q)) return 'relationship';
-    if (/\b(学习|考试|读书|记忆|技能|教育)\b/.test(q)) return 'learning';
-    if (/\b(编程|代码|程序员|技术|开发|AI|互联网)\b/.test(q)) return 'tech';
-  }
-
   return bestDomain;
 }
 
